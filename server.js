@@ -5,10 +5,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Your Discord webhook URL
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1192588489271820288/3dEXtGTLB3cJLnnHRuc-WOz26kwJPs5PDSYgv2azG1Tm8cgGZM8JIYE6xwaCRU5dn9e3";
+const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1441242830742749237/MyV2FIQcf6MOg251Bkm2uA5HldKxW5v9-OxOwYNInuhPm1_miiP7XlXC_qqbllcTtL-x";
 
 // Your Fyre API token
-const FYRE_TOKEN = "1cf5dd9bc3ab5bfc7389b8babe4bd990";
+const FYRE_TOKEN = "93a69c3a0385318df2bcecbb2fa8cb32";
 
 /**
  * Send a message to Discord with automatic retry on rate limit (429).
