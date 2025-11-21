@@ -73,10 +73,9 @@ async function sendToDiscordWithRetry(content) {
   }
 }
 
-// Route Nightbot calls
+// Route Nightbot (and your browser) calls
 app.get("/clip", async (req, res) => {
   const channel = req.query.channel;
-  const user = req.query.user || null; // who typed !clip (from Nightbot)
 
   if (!channel) {
     return res.status(400).send("Missing ?channel= parameter");
@@ -86,18 +85,12 @@ app.get("/clip", async (req, res) => {
     // 1) Ask Fyre to create the clip
     const fyreUrl = `https://api.thefyrewire.com/twitch/clips/create/${FYRE_TOKEN}?channel=${encodeURIComponent(channel)}`;
     const fyreResp = await fetch(fyreUrl);
-    const fyreText = await fyreResp.text(); // Fyre returns plain text (usually includes the clip URL)
+    const fyreText = await fyreResp.text(); // usually includes the clip URL
 
-    // 2) Build Discord message, including who triggered it (if provided)
-    let discordContent = fyreText;
-    if (user) {
-      discordContent = `Clip triggered by **${user}**: ${fyreText}`;
-    }
+    // 2) Fire-and-forget Discord send (with retry on rate limit)
+    sendToDiscordWithRetry(fyreText);
 
-    // 3) Fire-and-forget Discord send (with retry on rate limit)
-    sendToDiscordWithRetry(discordContent);
-
-    // 4) Respond immediately to Nightbot (just the Fyre text/URL)
+    // 3) Respond immediately to Nightbot (just the clip text/URL)
     res.send(fyreText);
   } catch (error) {
     console.error("Relay error:", error);
