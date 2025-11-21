@@ -4,10 +4,10 @@ const fetch = require("node-fetch");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// NEW Discord webhook URL for cdewx
+// Discord webhook URL for cdewx
 const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1441242830742749237/MyV2FIQcf6MOg251Bkm2uA5HldKxW5v9-OxOwYNInuhPm1_miiP7XlXC_qqbllcTtL-x";
 
-// NEW Fyre API token for cdewx
+// Fyre API token for cdewx (JUST the token part)
 const FYRE_TOKEN = "93a69c3a0385318df2bcecbb2fa8cb32";
 
 /**
@@ -27,7 +27,11 @@ async function sendToDiscordWithRetry(content) {
     // If not rate-limited, we're done.
     if (firstResp.status !== 429) {
       if (!firstResp.ok) {
-        console.error("Discord webhook error:", firstResp.status, await firstResp.text().catch(() => ""));
+        console.error(
+          "Discord webhook error:",
+          firstResp.status,
+          await firstResp.text().catch(() => "")
+        );
       }
       return;
     }
@@ -54,13 +58,16 @@ async function sendToDiscordWithRetry(content) {
         });
 
         if (!retryResp.ok) {
-          console.error("Discord webhook retry failed:", retryResp.status, await retryResp.text().catch(() => ""));
+          console.error(
+            "Discord webhook retry failed:",
+            retryResp.status,
+            await retryResp.text().catch(() => "")
+          );
         }
       } catch (err) {
         console.error("Error on Discord webhook retry:", err);
       }
     }, retryAfterMs);
-
   } catch (err) {
     console.error("Error sending to Discord:", err);
   }
@@ -84,7 +91,7 @@ app.get("/clip", async (req, res) => {
     // 2) Build Discord message, including who triggered it (if provided)
     let discordContent = fyreText;
     if (user) {
-      discordContent = `Clip created by **${user}**: ${fyreText}`;
+      discordContent = `Clip triggered by **${user}**: ${fyreText}`;
     }
 
     // 3) Fire-and-forget Discord send (with retry on rate limit)
@@ -92,7 +99,6 @@ app.get("/clip", async (req, res) => {
 
     // 4) Respond immediately to Nightbot (just the Fyre text/URL)
     res.send(fyreText);
-
   } catch (error) {
     console.error("Relay error:", error);
     res.status(500).send("Error creating clip");
