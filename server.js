@@ -4,10 +4,10 @@ const fetch = require("node-fetch");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Your Discord webhook URL
+// NEW Discord webhook URL for cdewx
 const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1441242830742749237/MyV2FIQcf6MOg251Bkm2uA5HldKxW5v9-OxOwYNInuhPm1_miiP7XlXC_qqbllcTtL-x";
 
-// Your Fyre API token
+// NEW Fyre API token for cdewx
 const FYRE_TOKEN = "93a69c3a0385318df2bcecbb2fa8cb32";
 
 /**
@@ -69,6 +69,7 @@ async function sendToDiscordWithRetry(content) {
 // Route Nightbot calls
 app.get("/clip", async (req, res) => {
   const channel = req.query.channel;
+  const user = req.query.user || null; // who typed !clip (from Nightbot)
 
   if (!channel) {
     return res.status(400).send("Missing ?channel= parameter");
@@ -80,10 +81,16 @@ app.get("/clip", async (req, res) => {
     const fyreResp = await fetch(fyreUrl);
     const fyreText = await fyreResp.text(); // Fyre returns plain text (usually includes the clip URL)
 
-    // 2) Fire-and-forget Discord send (with retry on rate limit)
-    sendToDiscordWithRetry(fyreText);
+    // 2) Build Discord message, including who triggered it (if provided)
+    let discordContent = fyreText;
+    if (user) {
+      discordContent = `Clip created by **${user}**: ${fyreText}`;
+    }
 
-    // 3) Respond immediately to Nightbot
+    // 3) Fire-and-forget Discord send (with retry on rate limit)
+    sendToDiscordWithRetry(discordContent);
+
+    // 4) Respond immediately to Nightbot (just the Fyre text/URL)
     res.send(fyreText);
 
   } catch (error) {
